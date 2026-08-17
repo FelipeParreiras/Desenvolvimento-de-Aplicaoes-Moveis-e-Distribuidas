@@ -2,7 +2,7 @@
 
 ## Parte A - TCP
 
-1. Se o cliente TCP iniciar antes do servidor, a conexao falha porque nao existe nenhum processo escutando na porta de destino. No Java e no Python, isso aparece como erro de conexao recusada. Isso ocorre porque o TCP precisa estabelecer uma conexao antes de enviar dados; sem servidor aceitando o handshake, o cliente nao tem para onde conectar.
+1. Se o cliente TCP iniciar antes do servidor, a conexao falha porque nao existe nenhum processo escutando na porta de destino. No Java e no Python, isso aparece como erro de conexao recusada. Isso ocorre porque o TCP precisa estabelecer uma conexao antes de enviar dados; sem servidor aceitando o handshake, o cliente nao tem para onde conectar. Nos testes com o servidor ligado, a conexao so foi estabelecida depois que `ServidorTCP`/`servidor_tcp.py` ficaram aguardando na porta.
 
 2. O TCP usa numeros de sequencia e confirmacoes (`ACKs`) para controlar a entrega dos bytes. Como a comunicacao TCP e vista pela aplicacao como um fluxo ordenado, o sistema operacional reorganiza os segmentos quando necessario antes de entregar os dados ao programa.
 
@@ -10,7 +10,7 @@
 
 ## Parte B - UDP
 
-1. Com o servidor UDP desligado, o cliente consegue enviar o datagrama porque UDP nao estabelece conexao antes do envio. Na implementacao, o cliente espera uma resposta por pouco tempo e depois mostra timeout. Em TCP isso seria diferente: o cliente falharia ja na tentativa de conectar, porque o handshake nao seria concluido.
+1. Com o servidor UDP desligado, o cliente consegue enviar o datagrama porque UDP nao estabelece conexao antes do envio. Na implementacao, o cliente espera uma resposta por pouco tempo e depois mostra timeout ou ausencia de resposta. Em TCP isso seria diferente: o cliente falharia ja na tentativa de conectar, porque o handshake nao seria concluido. No Windows, o cliente Python tambem pode receber um aviso ICMP de porta inacessivel; o codigo trata isso como ausencia de resposta.
 
 2. Dois exemplos reais de UDP sao chamadas de voz/video e jogos online. Em chamadas, e melhor perder um pacote atrasado do que pausar toda a conversa esperando retransmissao. Em jogos online, posicoes antigas perdem valor rapidamente; retransmitir tudo como TCP poderia aumentar latencia e prejudicar a experiencia.
 
@@ -18,7 +18,7 @@
 
 ## Parte C - Multicast
 
-1. No unicast repetido, o remetente envia uma copia da mesma mensagem para cada cliente. Com tres clientes, sao tres envios. No multicast, o remetente envia uma unica mensagem para o grupo, e a rede entrega aos membros inscritos. Isso reduz o trabalho do emissor e o trafego duplicado em parte do caminho.
+1. No unicast repetido, o remetente envia uma copia da mesma mensagem para cada cliente. Com tres clientes, sao tres envios. No multicast, o remetente envia uma unica mensagem para o grupo, e a rede entrega aos membros inscritos. Isso reduz o trabalho do emissor e o trafego duplicado em parte do caminho. Nos testes locais, dois clientes receberam os mesmos cinco avisos enviados uma unica vez pelo servidor.
 
 2. TTL significa `time-to-live`. No multicast, ele limita quantos saltos o pacote pode atravessar na rede. Isso e importante para impedir que avisos locais se espalhem alem do escopo desejado, como para outras redes ou segmentos onde nao fazem sentido.
 
@@ -28,6 +28,6 @@
 
 1. Depois do handshake HTTP com `Upgrade: websocket`, a conexao deixa de seguir o modelo HTTP tradicional de requisicao e resposta. O mesmo TCP permanece aberto, mas passa a transportar frames WebSocket, permitindo mensagens nos dois sentidos a qualquer momento.
 
-2. No multicast, os destinatarios sao alcancados pela inscricao em um grupo IP; o servidor nao conhece individualmente cada cliente. No WebSocket, o servidor aceita conexoes TCP/WebSocket individuais e mantem um conjunto de clientes conectados para reenviar as mensagens a todos.
+2. No multicast, os destinatarios sao alcancados pela inscricao em um grupo IP; o servidor nao conhece individualmente cada cliente. No WebSocket, o servidor aceita conexoes TCP/WebSocket individuais e mantem um conjunto de clientes conectados para reenviar as mensagens a todos. Isso aparece no codigo Python pelo conjunto `clientes_conectados` e no Java por `getConnections()`.
 
 3. WebSocket e mais adequado que TCP cru para o mural porque ja define handshake, framing de mensagens, integracao natural com navegadores e um modelo padrao para comunicacao full-duplex. TCP cru tambem manteria conexao aberta, mas exigiria criar um protocolo proprio para separar mensagens, controlar clientes e integrar com aplicacoes web.
